@@ -1,4 +1,4 @@
-# USVCoordinatesNavigation
+# USV Navigation by Coordinates
 
 ## Project Description
 
@@ -65,6 +65,21 @@ Contains source code for microcontrollers.
 3.  **Visualization**:
     - Open `Web_Viz/index.html` in a modern web browser (Chrome, Firefox).
     - No server installation required, works locally.
+
+## NavalRex25 Participation
+
+The USV team participated in **NavalRex25**, demonstrating the vehicle's capabilities in a real-world environment. We tested previous code versions that were theoretically correct but encountered practical challenges in the field.
+
+![NavalRex25 Team](media/navalrex25_team.jpg)
+
+## Challenges and Solutions
+
+### Compass Calibration & Look-Up Table
+
+One of the major challenges encountered during NavalRex25 was a decompensated compass. Despite the code working in theory, the physical compass readings were inaccurate due to magnetic interference on the USV.
+
+**Solution:**
+We implemented a **Look-Up Table (LUT)** in software to correct the heading errors. This allowed us to map the erroneous raw values to the correct geographical heading, stabilizing the navigation.
 
 ## License
 
