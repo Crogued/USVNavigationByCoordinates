@@ -2,11 +2,11 @@
 
 ## Project Description
 
-This project implements a navigation system for an Unmanned Surface Vehicle (USV) capable of autonomous navigation using GPS coordinates and an obstacle avoidance or buoy passing system using computer vision. The system combines the robustness of an Arduino Mega for low-level control and GPS navigation with the processing power of a Raspberry Pi (or other vision system) for complex tasks.
+This project implements a navigation system for an Unmanned Surface Vehicle (USV) capable of autonomous navigation using GPS coordinates. The system relies on an Arduino Mega for control and navigation. The navigation logic is based on creating vectors between waypoints and maintaining the USV on that line (Vector-based Navigation).
 
 ## Key Features
 
-- **Precise GPS Navigation**: Uses a Ublox M8N GPS module with integrated compass to navigate between waypoints.
+- **Vector-based GPS Navigation**: Uses a Ublox M8N GPS module to navigate between waypoints by following calculated vectors.
 - **Motor Control**: Manages motors for propulsion and steering.
 - **Data Logging**: A dedicated Arduino Nano receives telemetry from the main controller and stores it on an SD card for later analysis.
 - **Web Visualization**: Web tool to visualize the route taken by the USV and verify passage through control points.
@@ -80,10 +80,10 @@ _(Place your event photos in the `media/` folder)_
 
 ### Compass Calibration & Look-Up Table
 
-One of the major challenges encountered during NavalRex25 was a decompensated compass. Despite the code working in theory, the physical compass readings were inaccurate due to magnetic interference on the USV.
+One of the major challenges encountered during NavalRex25 was a faulty compass. The hardware itself had a defect that caused a constant linear error in the readings, rather than it being an issue of external magnetic interference.
 
 **Solution:**
-We implemented a **Look-Up Table (LUT)** in software to correct the heading errors. This allowed us to map the erroneous raw values to the correct geographical heading, stabilizing the navigation.
+Since the error was linear and constant, we implemented a **Look-Up Table (LUT)** in software. This allowed us to map the incorrect raw values to the correct geographical heading, effectively calibrating the compass via software.
 
 ## License
 
