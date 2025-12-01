@@ -71,6 +71,10 @@ Contains source code for microcontrollers.
 The USV team participated in **NavalRex25**, demonstrating the vehicle's capabilities in a real-world environment. We tested previous code versions that were theoretically correct but encountered practical challenges in the field.
 
 ![NavalRex25 Team](media/navalrex25_team.jpg)
+_(Place your event photos in the `media/` folder)_
+
+**Media Coverage:**
+[Escola Náutica reforça presença portuguesa no maior exercício mundial de robótica marítima](https://sapo.pt/artigo/escola-nautica-reforca-presenca-portuguesa-no-maior-exercicio-mundial-de-robotica-maritima-68c435dc0e9d7127e2de960f)
 
 ## Challenges and Solutions
 
