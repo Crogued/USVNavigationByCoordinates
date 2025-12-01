@@ -4,6 +4,8 @@
 
 This project implements a navigation system for an Unmanned Surface Vehicle (USV) capable of autonomous navigation using GPS coordinates. The system relies on an Arduino Mega for control and navigation. The navigation logic is based on creating vectors between waypoints and maintaining the USV on that line (Vector-based Navigation).
 
+![USV Navigation by Coordinates](media/usv_navigation_by_coordinates.gif)
+
 ## Key Features
 
 - **Vector-based GPS Navigation**: Uses a Ublox M8N GPS module to navigate between waypoints by following calculated vectors.
