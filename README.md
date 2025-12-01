@@ -1,4 +1,4 @@
-# USV Navigation by Coordinates
+# Autonomous USV Navigation Using GPS Coordinates
 
 ## Project Description
 
