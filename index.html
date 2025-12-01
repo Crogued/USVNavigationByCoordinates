@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>USV Data Visualizer</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; padding: 0; background: #f6f6f6; }
+    #controls { padding: 10px; background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+    #map { height: 400px; margin: 10px; border-radius: 10px; }
+    canvas { background: white; border-radius: 10px; margin: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
+    input[type="file"], button { cursor: pointer; padding: 6px 12px; border-radius: 5px; border: 1px solid #ccc; background: #f9f9f9; }
+    button:hover { background: #e8e8e8; }
+  </style>
+</head>
+<body>
+  <div id="controls">
+    <input type="file" id="fileInput" accept=".txt" />
+    <button id="addPointBtn">Adicionar ponto</button>
+  </div>
+  
+  <div id="map"></div>
+
+  <canvas id="erroAngularChart" height="150"></canvas>
+  <canvas id="erroPerpChart" height="150"></canvas>
+  <canvas id="pwmChart" height="150"></canvas>
+
+  <script>
+    // --- Configuração inicial do mapa ---
+    const map = L.map('map').setView([38.6914, -9.2994], 17);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 22,
+      attribution: '© OpenStreetMap'
+    }).addTo(map);
+
+    let usvPath = [];
+    let usvPolyline = null;
+    let addedPoints = [];
+    let pointCounter = 0;
+
+    // --- Função para gerar nomes A, B, C, ..., Z, AA, AB, ... ---
+    function getPointLabel(index) {
+      let label = '';
+      do {
+        label = String.fromCharCode(65 + (index % 26)) + label;
+        index = Math.floor(index / 26) - 1;
+      } while (index >= 0);
+      return label;
+    }
+
+    // --- Adicionar ponto manualmente via coordenadas ---
+    document.getElementById("addPointBtn").onclick = () => {
+      const latStr = prompt("Insere a latitude do ponto:");
+      const lonStr = prompt("Insere a longitude do ponto:");
+      const lat = parseFloat(latStr);
+      const lon = parseFloat(lonStr);
+
+      if (isNaN(lat) || isNaN(lon)) {
+        alert("Coordenadas inválidas! Tenta novamente.");
+        return;
+      }
+
+      const label = getPointLabel(pointCounter);
+      pointCounter++;
+
+      const marker = L.marker([lat, lon]).addTo(map)
+        .bindPopup(`<b>Ponto ${label}</b><br>Lat: ${lat.toFixed(6)}<br>Lon: ${lon.toFixed(6)}`)
+        .openPopup();
+
+      addedPoints.push({ label, lat, lon });
+    };
+
+    // --- Upload e processamento do ficheiro .txt ---
+    document.getElementById('fileInput').addEventListener('change', handleFile);
+
+    async function handleFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const text = await file.text();
+      const lines = text.trim().split("\n").slice(1); // Ignora o cabeçalho
+
+      const tempo = [], erroAngular = [], erroPerp = [], pwmA = [], pwmB = [], lat = [], lon = [];
+
+      for (let line of lines) {
+        const parts = line.split(",");
+        if (parts.length < 13) continue;
+        tempo.push(parts[0]);
+        lat.push(parseFloat(parts[2]));
+        lon.push(parseFloat(parts[3]));
+        erroPerp.push(parseFloat(parts[7]));
+        erroAngular.push(parseFloat(parts[10]));
+        pwmA.push(parseFloat(parts[11]));
+        pwmB.push(parseFloat(parts[12]));
+      }
+
+      // --- Atualiza mapa com a trajetória ---
+      usvPath = lat.map((_, i) => [lat[i], lon[i]]);
+      if (usvPolyline) map.removeLayer(usvPolyline);
+      usvPolyline = L.polyline(usvPath, { color: 'blue', weight: 3 }).addTo(map);
+      map.fitBounds(usvPolyline.getBounds(), { padding: [20, 20] });
+
+      // --- Gráfico Erro Angular ---
+      new Chart(document.getElementById('erroAngularChart'), {
+        type: 'line',
+        data: {
+          labels: tempo,
+          datasets: [
+            { label: 'Erro Angular (°)', data: erroAngular, borderColor: 'red', fill: false, tension: 0.4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { title: { display: true, text: 'Erro Angular do USV' } },
+          scales: { x: { title: { display: true, text: 'Tempo' } }, y: { title: { display: true, text: 'Graus (°)' } } }
+        }
+      });
+
+      // --- Gráfico Erro Perpendicular ---
+      new Chart(document.getElementById('erroPerpChart'), {
+        type: 'line',
+        data: {
+          labels: tempo,
+          datasets: [
+            { label: 'Erro Perpendicular (m)', data: erroPerp, borderColor: 'blue', fill: false, tension: 0.4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { title: { display: true, text: 'Erro Perpendicular do USV' } },
+          scales: { x: { title: { display: true, text: 'Tempo' } }, y: { title: { display: true, text: 'Metros (m)' } } }
+        }
+      });
+
+      // --- Gráfico PWM ---
+      new Chart(document.getElementById('pwmChart'), {
+        type: 'line',
+        data: {
+          labels: tempo,
+          datasets: [
+            { label: 'PWM Motor A', data: pwmA, borderColor: 'green', fill: false, tension: 0.4 },
+            { label: 'PWM Motor B', data: pwmB, borderColor: 'orange', fill: false, tension: 0.4 }
+          ]
+        },
+        options: {
+          responsive: true,
+          interaction: { mode: 'index', intersect: false },
+          plugins: { title: { display: true, text: 'PWM dos Motores' } },
+          scales: {
+            y: { min: 1000, max: 2000, title: { display: true, text: 'PWM' } },
+            x: { title: { display: true, text: 'Tempo' } }
+          }
+        }
+      });
+    }
+  </script>
+</body>
+</html>
